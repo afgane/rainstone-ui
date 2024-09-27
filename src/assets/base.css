@@ -1,0 +1,104 @@
+:root {
+  --r-c-white: #ffffff;
+  --r-c-white-soft: #f8f8f8;
+  --r-c-white-mute: #f2f2f2;
+  --r-c-white-ghost: #FFFAFF;
+
+  --r-c-gray-500: #595959;
+  --r-c-gray-700: #999999;
+  --r-c-gray-900: #D9D9D9;
+
+  --r-c-black: #181818;
+  --r-c-black-soft: #161b22;
+  --r-c-black-mute: #30363d;
+  --r-c-black-rich: #0d1117;
+
+  --r-c-primary-100: #3E92CC;
+  --r-c-primary-100-dark: #276591;
+  --r-c-primary-300: #D8315B;
+  --r-c-primary-500: #EDAE49;
+  --r-c-primary-700: #BBE6E4;
+  --r-c-primary-700-dark: #79CDC9;
+  --r-c-primary-900: #79c0ff;
+
+  --r-c-galaxy: #2c3143;
+  --r-c-delft: #383f56;
+  --r-c-cadet: #8d98a7;
+  --r-c-cadet-light: #C5CBD3;
+  --r-c-cadet-dark: #596473;
+
+  --r-c-text-muted: var(--r-c-gray-700);
+  --r-c-border-highlight-1: #3c52dc;
+  --r-c-border-highlight-2: #2886a9;
+
+  --r-text-size-50: 0.5rem;
+  --r-text-size-75: 0.75rem;
+  --r-text-size-100: 1rem;
+  --r-text-size-125: 1.125rem;
+  --r-text-size-150: 1.5rem;
+  --r-text-size-175: 1.75rem;
+  --r-text-size-200: 2rem;
+  --r-text-size-225: 2.25rem;
+  --r-text-size-250: 2.5rem;
+  --r-text-size-300: 3rem;
+  --r-text-size-350: 3.5rem;
+  --r-text-size-400: 4rem;
+  --r-text-size-450: 4.5rem;
+  --r-text-size-550: 5.5rem;
+  --r-text-size-600: 6rem;
+
+  --r-content-caption-maxwidth: 600px;
+  --r-content-heading-maxwidth: 900px;
+  --r-content-content-maxwidth: 1285px;
+  --r-content-maxwidth: 1440px;
+
+  --r-space-space-halfunit: 8px;
+  --r-space-space-unit: 16px;
+  --r-space-space-oneandhalfunits: 24px;
+  --r-space-space-twounits: 32px;
+  --r-space-space-twoandhalfunits: 40px;
+  --r-space-space-threeunits: 48px;
+  --r-space-space-fourunits: 64px;
+  --r-space-space-fiveunits: 80px;
+  --r-space-space-sixunits: 96px;
+  --r-space-space-sevenunits: 112px;
+
+  --r-radius-radius-round: 50%;
+  --r-radius-radius-radius2: 2px;
+  --r-radius-radius-radius4: 4px;
+  --r-radius-radius-radius8: 8px;
+  --r-radius-radius-radius16: 16px;
+  --r-radius-radius-radius24: 24px;
+}
+
+/* semantic color variables for this project */
+:root {
+  --color-background: var(--r-c-galaxy);
+
+  --color-heading: var(--r-c-white);
+  --color-text: var(--r-c-white);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-size: 16px;  /* Definition for 1rem */
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-background);
+  transition:
+    color 0.5s,
+    background-color 0.5s;
+  line-height: 1.6;
+  font-family: Verdana, Avenir, Helvetica, Arial, sans-serif;
+  font-size: var(--r-text-size-100);
+  text-align: center;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

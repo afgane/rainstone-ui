@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "lib": ["ES2015.Promise"]
+  },
+  "exclude": ["node_modules", "dist"]
+}
