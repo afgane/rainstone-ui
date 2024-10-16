@@ -29,7 +29,7 @@
         <app-feature
           :borderHighlight="true"
           header="How it works"
-          description="Available estimates are drawn from hundreds of thounsands of jobs from <a href='https://usegalaxy.org/' target='_blank'>usegalaxy.org</a>, encompasing a range of use cases."
+          description="Available estimates are drawn from hundreds of thousands of jobs from <a href='https://usegalaxy.org/' target='_blank'>usegalaxy.org</a>, encompassing a range of use cases."
           link="/#how-it-works"
           linkText="Technical details"
         ></app-feature>
