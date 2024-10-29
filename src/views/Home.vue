@@ -150,12 +150,14 @@
     <div class="go-container">
       <h3 class="go-header">Get started?</h3>
       <div class="go-text">This part is easy and free.</div>
-      <router-link class="go-button" to="/tools"
-        >Estimate Tool Cost</router-link
-      >
-      <router-link class="go-button" to="/tools"
-        >Estimate Workflow Cost</router-link
-      >
+      <div class="go-button-container">
+        <router-link class="go-button" to="/tools"
+          >Estimate Tool Cost</router-link
+        >
+        <router-link class="go-button" to="/tools"
+          >Estimate Workflow Cost</router-link
+        >
+      </div>
     </div>
   </section>
 
@@ -194,23 +196,37 @@ export default {
 <style scoped>
 .hero {
   width: 100%;
-  height: 90vh;
+  min-height: 90vh;
   display: flex;
   align-items: center;
   flex-direction: column;
   padding-bottom: var(--r-space-space-fiveunits);
+  position: relative;
 }
 
 .hero-container {
   gap: var(--r-space-space-threeunits);
   width: 100%;
-  height: 100%;
+  flex: 1;
   display: flex;
   z-index: 100;
   max-width: var(--r-content-heading-maxwidth);
   align-items: center;
   flex-direction: column;
   justify-content: center;
+  padding: 0 var(--r-space-space-unit);
+}
+
+/* Media queries for responsive layout */
+@media screen and (max-height: 1100px) {
+  .hero {
+    min-height: auto; /* Remove fixed height constraint */
+    padding-top: var(--r-space-space-twounits);
+  }
+
+  .hero-container {
+    padding-bottom: var(--r-space-space-threeunits);
+  }
 }
 
 .hero-text {
@@ -243,6 +259,8 @@ export default {
 
 .hero-features {
   display: block;
+  width: 100%;
+  padding: 0 var(--r-space-space-unit);
 }
 
 .features-content {
@@ -251,6 +269,16 @@ export default {
   display: flex;
   max-width: var(--r-content-maxwidth);
   flex-direction: row;
+  margin: 0 auto;
+}
+
+/* Handle narrow screens */
+@media screen and (max-width: 825px) {
+  .features-content {
+    flex-direction: column;
+    gap: var(--r-space-space-unit);
+    align-items: center;
+  }
 }
 
 .hero-button-container {
@@ -341,7 +369,6 @@ h2 {
 }
 
 .est-img-container {
-  width: var(--r-content-content-maxwidth);
   border-radius: var(--r-radius-radius-radius16);
   padding: var(--r-space-space-fourunits) var(--r-space-space-threeunits);
   background: linear-gradient(
@@ -409,6 +436,7 @@ em {
 
 .go-container {
   width: 60%;
+  text-align: center;
   margin-top: var(--r-space-space-fiveunits);
   padding: 40px;
   border-radius: 24px;
@@ -438,12 +466,24 @@ em {
   font-size: var(--r-text-size-125);
 }
 
+.go-button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+@media screen and (max-width: 825px) {
+  .go-button-container {
+    flex-direction: column;
+  }
+}
+
 .go-button {
-  height: 20px;
   padding: 10px 20px;
   border: solid 2px var(--r-c-black-mute);
   border-radius: 0.5rem;
-  margin: 15px;
   font-size: var(--r-text-size-150);
 }
 
