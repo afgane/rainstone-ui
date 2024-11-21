@@ -84,7 +84,6 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-size: 16px;  /* Definition for 1rem */
 }
 
 body {
