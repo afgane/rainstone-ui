@@ -6,35 +6,83 @@
         @drop.prevent="onDrop"
         @dragover.prevent="onDragOver"
         @dragleave.prevent="onDragLeave"
-        @click="openFileDialog"
+        @click="handleDropZoneClick"
         :class="{
-          'file-selected': selectedFile,
+          'file-mode': inputMode === 'file',
+          'url-mode': inputMode === 'url',
+          dragging: isDragging && inputMode === 'file',
+          'file-selected': hasWorkflowSource,
           'drop-zone-file-selected': isUploaded,
         }"
       >
+        <div class="source-mode-toggle" @click.stop>
+          <button
+            type="button"
+            class="mode-toggle-button"
+            :class="{ active: inputMode === 'file' }"
+            @click="setInputMode('file')"
+          >
+            Upload file
+          </button>
+          <button
+            type="button"
+            class="mode-toggle-button"
+            :class="{ active: inputMode === 'url' }"
+            @click="setInputMode('url')"
+          >
+            Use URL
+          </button>
+        </div>
         <input
           type="file"
           @change="onFileSelected"
           ref="fileInput"
           class="file-input"
+          accept=".ga,application/json"
         />
-        <p v-if="!selectedFile">
-          Drag and drop your Galaxy workflow file here <br />
-          or click to select one
-        </p>
-        <p v-else>Selected file: {{ selectedFile.name }}</p>
+        <div v-if="!isUploaded && inputMode === 'file'" class="drop-zone-content">
+          <p>
+            Drag and drop your Galaxy workflow file here <br />
+            or click to select one
+          </p>
+        </div>
+        <form
+          v-else-if="!isUploaded && inputMode === 'url'"
+          class="url-form"
+          @submit.prevent="loadWorkflowFromUrl"
+          @click.stop
+        >
+          <label class="url-label" for="workflow-url">
+            Paste a direct link to a Galaxy workflow `.ga` file
+          </label>
+          <input
+            id="workflow-url"
+            v-model.trim="workflowUrl"
+            type="url"
+            class="url-input"
+            placeholder="https://raw.githubusercontent.com/.../workflow.ga"
+            spellcheck="false"
+            autocomplete="off"
+          />
+          <p class="url-help">
+            Use a direct URL to the workflow file, such as a raw GitHub link.
+          </p>
+          <button
+            type="submit"
+            class="load-url-button"
+            :disabled="!workflowUrl || loading"
+          >
+            Load workflow
+          </button>
+        </form>
+        <div v-else class="drop-zone-status">
+          <p>{{ selectedSourceLabel }}</p>
+        </div>
       </div>
       <div class="button-group">
         <button
-          v-if="selectedFile && !isUploaded"
-          @click="uploadWorkflow"
-          class="upload-button"
-        >
-          Upload the Selected Workflow
-        </button>
-        <button
           @click="clearSelection"
-          v-if="selectedFile"
+          v-if="hasWorkflowSource"
           class="clear-button"
         >
           Clear Selection
@@ -209,18 +257,39 @@ export default {
   },
   data() {
     return {
+      inputMode: "file",
       selectedFile: null,
+      workflowUrl: "",
       costEstimate: null,
       loading: false,
       error: null,
       sortKey: "toolId", // Default sort key
       sortOrder: 1, // 1 for ascending, -1 for descending
-      selectedFile: null,
       isDragging: false,
       isUploaded: false,
     };
   },
   computed: {
+    hasWorkflowSource() {
+      return Boolean(this.selectedFile || this.workflowUrl);
+    },
+    selectedWorkflowName() {
+      if (this.selectedFile?.name) return this.selectedFile.name;
+      if (!this.workflowUrl) return "";
+
+      try {
+        const parsedUrl = new URL(this.workflowUrl);
+        return decodeURIComponent(parsedUrl.pathname.split("/").pop()) || this.workflowUrl;
+      } catch {
+        return this.workflowUrl;
+      }
+    },
+    selectedSourceLabel() {
+      if (!this.selectedWorkflowName) return "";
+      return this.inputMode === "url"
+        ? `Workflow URL loaded: ${this.selectedWorkflowName}`
+        : `Selected file: ${this.selectedWorkflowName}`;
+    },
     sortedGroupedTools() {
       if (!this.costEstimate || !this.costEstimate.tools) return [];
 
@@ -266,42 +335,116 @@ export default {
     },
   },
   methods: {
+    setInputMode(mode) {
+      if (this.inputMode === mode) return;
+
+      this.inputMode = mode;
+      this.clearSelection();
+    },
+    handleDropZoneClick() {
+      if (this.inputMode !== "file") return;
+      this.openFileDialog();
+    },
     openFileDialog() {
       this.$refs.fileInput.click();
     },
     onFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
       this.costEstimate = null;
       this.isUploaded = false;
-      this.selectedFile = event.target.files[0];
-      this.uploadWorkflow();
+      this.workflowUrl = "";
+      this.selectedFile = file;
+      this.submitWorkflowFile(file);
     },
     onDrop(event) {
+      if (this.inputMode !== "file") return;
+
+      const file = event.dataTransfer.files[0];
+      if (!file) return;
+
       this.isDragging = false;
       this.costEstimate = null;
-      this.selectedFile = event.dataTransfer.files[0];
-      this.uploadWorkflow();
+      this.workflowUrl = "";
+      this.selectedFile = file;
+      this.submitWorkflowFile(file);
     },
-    onDragOver(event) {
+    onDragOver() {
+      if (this.inputMode !== "file") return;
       this.isDragging = true;
     },
-    onDragLeave(event) {
+    onDragLeave() {
+      if (this.inputMode !== "file") return;
       this.isDragging = false;
     },
     clearSelection() {
       this.selectedFile = null;
+      this.workflowUrl = "";
       this.costEstimate = null;
       this.error = null;
-      this.$refs.fileInput.value = "";
+      this.isDragging = false;
+      if (this.$refs.fileInput) this.$refs.fileInput.value = "";
       this.isUploaded = false;
     },
-    async uploadWorkflow() {
-      if (!this.selectedFile) return;
+    async loadWorkflowFromUrl() {
+      if (!this.workflowUrl) return;
+
+      this.costEstimate = null;
+      this.error = null;
+      this.selectedFile = null;
+      this.isUploaded = false;
+
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(this.workflowUrl);
+      } catch {
+        this.error = "Enter a valid workflow URL.";
+        return;
+      }
+
+      if (!parsedUrl.pathname.toLowerCase().endsWith(".ga")) {
+        this.error = "Use a direct link to a .ga workflow file.";
+        return;
+      }
+
+      this.loading = true;
+
+      try {
+        const response = await axios.get(parsedUrl.toString(), {
+          responseType: "blob",
+        });
+        const fileName =
+          decodeURIComponent(parsedUrl.pathname.split("/").pop()) ||
+          "workflow.ga";
+        const workflowBlob =
+          response.data instanceof Blob
+            ? response.data
+            : new Blob([response.data], { type: "application/json" });
+        const workflowFile = new File([workflowBlob], fileName, {
+          type: workflowBlob.type || "application/json",
+        });
+
+        this.selectedFile = workflowFile;
+        await this.submitWorkflowFile(workflowFile);
+      } catch (error) {
+        console.error("Error loading workflow from URL:", error);
+        this.error =
+          "Unable to fetch the workflow URL. Make sure it is public and points directly to a .ga file.";
+        this.costEstimate = null;
+        this.isUploaded = false;
+      } finally {
+        this.loading = false;
+      }
+    },
+    async submitWorkflowFile(file) {
+      if (!file) return;
 
       this.loading = true;
       this.isUploaded = true;
       this.error = null;
       const formData = new FormData();
-      formData.append("galaxyWorkflow", this.selectedFile);
+      formData.append("galaxyWorkflow", file);
 
       try {
         const response = await axios.post(getApiUrl("/workflow"), formData, {
@@ -314,8 +457,10 @@ export default {
         console.error("Error uploading workflow:", error);
         this.error = "Error processing workflow";
         this.costEstimate = null;
+        this.isUploaded = false;
+      } finally {
+        this.loading = false;
       }
-      this.loading = false;
     },
     getToolCostPercentage(tool, costField, totalCost) {
       return (tool[costField] / totalCost) * 100;
@@ -339,7 +484,8 @@ export default {
       const element = document.querySelector(".estimate-container");
       // Create a clone of the element to modify
       const clonedElement = element.cloneNode(true);
-      clonedElement.title = this.selectedFile.name + " Workflow Cost Estimate";
+      clonedElement.title =
+        (this.selectedWorkflowName || "workflow") + " Workflow Cost Estimate";
       // Adjust styles for better visibility in PDF
       clonedElement.style.color = "black";
       const styles = `
@@ -384,14 +530,18 @@ export default {
   height: 50vh;
   border: 2px dashed var(--r-c-gray-900);
   border-radius: var(--r-radius-radius-radius8);
-  cursor: pointer;
   transition: background-color 0.3s, height 0.4s ease;
-  width: var(--r-content-content-maxwidth);
+  width: min(100%, var(--r-content-content-maxwidth));
   margin: 0 auto;
   padding: var(--r-space-space-twounits);
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+.drop-zone.file-mode {
+  cursor: pointer;
 }
 
 .drop-zone p {
@@ -399,8 +549,93 @@ export default {
   font-weight: bold;
 }
 
+.drop-zone-content,
+.drop-zone-status {
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+
+.source-mode-toggle {
+  position: absolute;
+  top: var(--r-space-space-twounits);
+  left: 50%;
+  display: inline-flex;
+  transform: translateX(-50%);
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-color: rgba(13, 17, 23, 0.65);
+  backdrop-filter: blur(10px);
+}
+
+.mode-toggle-button {
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--r-c-text-muted);
+  font-size: var(--r-text-size-100);
+  font-weight: 700;
+}
+
+.mode-toggle-button:hover {
+  background-color: transparent;
+  color: var(--r-c-white);
+}
+
+.mode-toggle-button.active {
+  background-color: var(--r-c-white);
+  color: var(--r-c-galaxy);
+}
+
+.mode-toggle-button.active:hover {
+  background-color: var(--r-c-white);
+  color: var(--r-c-galaxy);
+}
+
+.url-form {
+  width: min(100%, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--r-space-space-unit);
+  align-items: center;
+}
+
+.url-label {
+  font-size: var(--r-text-size-150);
+  font-weight: 700;
+}
+
+.url-input {
+  width: 100%;
+  padding: 18px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r-radius-radius-radius8);
+  background-color: rgba(13, 17, 23, 0.9);
+  color: var(--r-c-white);
+  font-size: var(--r-text-size-100);
+}
+
+.url-input:focus {
+  outline: 2px solid var(--r-c-primary-900);
+  outline-offset: 2px;
+}
+
+.url-help {
+  width: 100%;
+  font-size: var(--r-text-size-100) !important;
+  font-weight: 400 !important;
+  color: var(--r-c-text-muted);
+}
+
+.load-url-button {
+  min-width: 180px;
+}
+
 .drop-zone-file-selected {
-  height: 4vh !important;
+  min-height: 140px;
+  height: auto !important;
+  padding-top: 88px;
+  padding-bottom: var(--r-space-space-unit);
 }
 
 .drop-zone-file-selected p {
@@ -420,18 +655,14 @@ export default {
 
 .button-group {
   margin: var(--r-space-space-unit);
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .button-group button {
-  margin: 0 8px;
-}
-
-.upload-button:disabled {
-  display: none;
-}
-
-.upload-button:disabled:hover {
-  display: none;
+  margin: 0;
 }
 
 .clear-button {
@@ -507,5 +738,31 @@ th {
 ul {
   list-style-type: none;
   padding-left: 0;
+}
+
+@media (max-width: 900px) {
+  .drop-zone {
+    min-height: 420px;
+    height: auto;
+    padding: 120px var(--r-space-space-unit) var(--r-space-space-twounits);
+  }
+
+  .drop-zone-file-selected {
+    min-height: 140px;
+  }
+
+  .source-mode-toggle {
+    width: calc(100% - (var(--r-space-space-unit) * 2));
+    justify-content: center;
+  }
+
+  .mode-toggle-button {
+    flex: 1;
+  }
+
+  .url-label,
+  .drop-zone p {
+    font-size: var(--r-text-size-150);
+  }
 }
 </style>
