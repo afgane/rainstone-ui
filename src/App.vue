@@ -4,7 +4,7 @@
       <div class="logo">
         <router-link to="/">
           <img
-            src="/rainstone-logo.png"
+            :src="logoSrc"
             alt="Rainstone logo"
             class="logo-img"
           />
@@ -24,8 +24,16 @@
 </template>
 
 <script>
+import { BASE_URL } from "./config/api";
+
 export default {
   name: "App",
+  computed: {
+    logoSrc() {
+      const base = BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/";
+      return base + "rainstone-logo.png";
+    },
+  },
 };
 </script>
 

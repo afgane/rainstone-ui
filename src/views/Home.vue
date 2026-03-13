@@ -22,22 +22,22 @@
         <app-feature
           :borderHighlight="true"
           header="How to use"
-          description="Look up a <a href='/tools'>tool</a> or upload a Galaxy <a href='/workflow'>workflow</a> to get an instant cost estimate."
-          link="/#how-to-use"
+          :description="howToUseDescription"
+          :link="getAssetUrl('#how-to-use')"
           linkText="Discover more"
         ></app-feature>
         <app-feature
           :borderHighlight="true"
           header="How it works"
-          description="Available estimates are drawn from hundreds of thousands of jobs from <a href='https://usegalaxy.org/' target='_blank'>usegalaxy.org</a>, encompassing a range of use cases."
-          link="/#how-it-works"
+          :description="howItWorksDescription"
+          :link="getAssetUrl('#how-it-works')"
           linkText="Technical details"
         ></app-feature>
         <app-feature
           :borderHighlight="true"
           header="Keep in mind"
           description="These are estimates! The numbers often vary widely and the actual results will differ."
-          link="/#keep-in-mind"
+          :link="getAssetUrl('#keep-in-mind')"
           linkText="Reality check"
         ></app-feature>
       </div>
@@ -51,7 +51,7 @@
       </h2>
       <div class="est-img-container">
         <img
-          src="/wf-est.png"
+          :src="getAssetUrl('wf-est.png')"
           alt="Workflow estimate screenshot"
           class="est-img"
         />
@@ -77,15 +77,15 @@
               help estimate the computational resources you need for a specific
               tool. You can see the full inventory of tools for which cost
               estimates are available on the
-              <a href="/tools">Tools List</a> page or search for a specific tool
-              on the <a href="/tool-details">Tool Details</a> page. Those pages
+              <router-link to="/tools">Tools List</router-link> page or search for a specific tool
+              on the <router-link to="/tool-details">Tool Details</router-link> page. Those pages
               show cost estimates for individual tools.
             </li>
             <li>
               <span style="color: var(--r-c-white)">Workflows section</span>
               will help estimate the computational resources you need for an
               entire workflow. You simply upload a Galaxy workflow on the
-              <a href="/workflow">Workflows</a> page and the app will estimate
+              <router-link to="/workflow">Workflows</router-link> page and the app will estimate
               the cost of running that workflow on the cloud.
             </li>
           </ul>
@@ -94,7 +94,7 @@
     </div>
   </section>
 
-  <section id="how-it-works" class="how-it-works">
+  <section id="how-it-works" class="how-it-works" :style="howItWorksStyle">
     <div class="home-center">
       <h2>It's the law of large numbers</h2>
       <div class="features-content">
@@ -183,12 +183,34 @@
 <script>
 import Feature from "../components/Feature.vue";
 import Box from "../components/Box.vue";
+import { BASE_URL } from "../config/api";
 
 export default {
   name: "Home",
   components: {
     appFeature: Feature,
     appBox: Box,
+  },
+  computed: {
+    howToUseDescription() {
+      const base = BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/";
+      return `Look up a <a href='${base}tools'>tool</a> or upload a Galaxy <a href='${base}workflow'>workflow</a> to get an instant cost estimate.`;
+    },
+    howItWorksDescription() {
+      return `Available estimates are drawn from hundreds of thousands of jobs from <a href='https://usegalaxy.org/' target='_blank'>usegalaxy.org</a>, encompassing a range of use cases.`;
+    },
+    howItWorksStyle() {
+      const base = BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/";
+      return {
+        backgroundImage: `url("${base}gradient-bg.png")`,
+      };
+    },
+  },
+  methods: {
+    getAssetUrl(name) {
+      const base = BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/";
+      return base + name;
+    },
   },
 };
 </script>
@@ -421,7 +443,6 @@ em {
   align-items: center;
   flex-direction: column;
   padding: var(--r-space-space-sevenunits) 0;
-  background-image: url("/gradient-bg.png");
   background-size: cover;
   background-color: #2c3143;
 }

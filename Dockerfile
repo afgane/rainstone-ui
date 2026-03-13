@@ -2,6 +2,9 @@ FROM node:22-alpine as build
 
 WORKDIR /app
 
+ARG VITE_APP_BASE_URL=/
+ENV VITE_APP_BASE_URL=$VITE_APP_BASE_URL
+
 COPY package.json package-lock.json ./
 RUN npm install
 

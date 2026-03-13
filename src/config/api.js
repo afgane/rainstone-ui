@@ -1,14 +1,16 @@
-let API_BASE_URL, API_SUBPATH;
+let API_BASE_URL, API_SUBPATH, BASE_URL;
 
 if (typeof window !== 'undefined' && window.APP_CONFIG) {
   API_BASE_URL = window.APP_CONFIG.API_BASE_URL || null;
   API_SUBPATH = window.APP_CONFIG.API_SUBPATH || '/api';
+  BASE_URL = window.APP_CONFIG.BASE_URL || '/';
 } else {
   API_BASE_URL = null;
   API_SUBPATH = null;
+  BASE_URL = '/';
 }
 
-export { API_BASE_URL, API_SUBPATH };
+export { API_BASE_URL, API_SUBPATH, BASE_URL };
 
 export const getApiUrl = (endpoint) => {
   if (API_BASE_URL && API_SUBPATH) {
