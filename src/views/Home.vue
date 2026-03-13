@@ -288,18 +288,18 @@ export default {
 .features-content {
   gap: var(--r-space-space-twounits);
   width: 100%;
-  display: flex;
-  max-width: var(--r-content-maxwidth);
-  flex-direction: row;
+  display: grid;
+  max-width: 1324px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  justify-content: center;
+  justify-items: center;
   margin: 0 auto;
 }
 
-/* Handle narrow screens */
 @media screen and (max-width: 825px) {
   .features-content {
-    flex-direction: column;
     gap: var(--r-space-space-unit);
-    align-items: center;
+    grid-template-columns: 1fr;
   }
 }
 
